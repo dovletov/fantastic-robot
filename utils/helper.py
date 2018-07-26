@@ -152,6 +152,7 @@ def patchCentered(data, pos_x, pos_y, patch_size):
     
     return patch
 
+# tr, vl, ev coords
 def generateCoordsList(image, label, patch_size):
     '''
     Form lists of coordinates for each of the classes and stores
@@ -209,10 +210,6 @@ def printSplitInfo(tr_coords, vl_coords, ev_coords):
     for cl in range(cl_num):
         print("Class "+str(cl+1).zfill(2)+"\t\t"+str(len(tr_coords[cl])).zfill(5)+"\t\t"+str(len(vl_coords[cl])).zfill(5)+"\t\t"+str(len(ev_coords[cl])).zfill(5))
 
-
-
-
-# TRAIN,VALID,EVAL coords
 def saveCoords(coords_file, tr_coords, vl_coords, ev_coords):
     dictionary = {}
     
@@ -238,3 +235,36 @@ def loadCoords(coords_file):
     print("length vl coords\t",len(vl_coords))
     print("length ev coords\t",len(ev_coords))
     return tr_coords, vl_coords, ev_coords
+
+# tr, vl, ev patches
+def loadPatches(image, patch_size, tr_coords, vl_coords, ev_coords):
+    '''
+    Loads centered patches based on tr, vl and ev coordinates.
+    '''
+    tr_patches, vl_patches, ev_patches = [], [], []
+
+    for cl in range(len(tr_coords)):
+        tr_patches.append([])
+        cur_cl_coords = tr_coords[cl]
+        cur_cl_patches = tr_patches[cl]
+        for i in range(len(cur_cl_coords)):
+            x, y = cur_cl_coords[i]
+            cur_cl_patches.append(patchCentered(image, x, y, patch_size))
+
+    for cl in range(len(vl_coords)):
+        vl_patches.append([])
+        cur_cl_coords = vl_coords[cl]
+        cur_cl_patches = vl_patches[cl]
+        for i in range(len(cur_cl_coords)):
+            x, y = cur_cl_coords[i]
+            cur_cl_patches.append(patchCentered(image, x, y, patch_size))
+
+    for cl in range(len(ev_coords)):
+        ev_patches.append([])
+        cur_cl_coords = ev_coords[cl]
+        cur_cl_patches = ev_patches[cl]
+        for i in range(len(cur_cl_coords)):
+            x, y = cur_cl_coords[i]
+            cur_cl_patches.append(patchCentered(image, x, y, patch_size))
+
+    return tr_patches, vl_patches, ev_patches

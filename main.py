@@ -83,9 +83,11 @@ if Path(coords_file).is_file():
     tr_coords, vl_coords, ev_coords = loadCoords(coords_file)
 else:
     tr_coords, vl_coords, ev_coords = splitCoordsListByFrac(coords, 0.2, 0.2)
-    printSplitInfo(tr_coords, vl_coords, ev_coords)
     saveCoords(coords_file, tr_coords, vl_coords, ev_coords)
+printSplitInfo(tr_coords, vl_coords, ev_coords)
 
+tr_patches, vl_patches, ev_patches = loadPatches(image, args.patch_size, tr_coords, vl_coords, ev_coords)
+printSplitInfo(tr_patches, vl_patches, ev_patches)
 
 # plt.figure(figsize=(7, 12))
 mat = plt.imshow(label,
