@@ -6,6 +6,9 @@ import numpy as np
 import tensorflow as tf
 import scipy.io
 from random import shuffle
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib import colors as mcolors
 
 
 # DATASETs
@@ -209,6 +212,19 @@ def printSplitInfo(tr_coords, vl_coords, ev_coords):
     print('\t\t\tlen(tr)\t\tlen(vl)\t\tlen(ev)')
     for cl in range(cl_num):
         print("Class "+str(cl+1).zfill(2)+"\t\t"+str(len(tr_coords[cl])).zfill(5)+"\t\t"+str(len(vl_coords[cl])).zfill(5)+"\t\t"+str(len(ev_coords[cl])).zfill(5))
+def formArrayFromCoordsList(height, width, coords):
+    array = np.zeros((height, width), dtype=np.uint8)
+    
+    cl_num = len(coords)
+    for cl in range(cl_num):
+        current_coords = coords[cl]
+        count = len(coords[cl])
+        for i in range(count):
+            x = current_coords[i][0]
+            y = current_coords[i][1]
+            array[x,y] = cl + 1
+    return array
+
 
 def saveCoords(coords_file, tr_coords, vl_coords, ev_coords):
     dictionary = {}
@@ -268,3 +284,17 @@ def loadPatches(image, patch_size, tr_coords, vl_coords, ev_coords):
             cur_cl_patches.append(patchCentered(image, x, y, patch_size))
 
     return tr_patches, vl_patches, ev_patches
+
+def plotArray(array, cl_num, color_list, colorbar=True):
+    '''
+    Plot array as a ground truth image. If needed include colorbar.
+    '''
+    plt.figure(figsize=(7, 12))
+    mat = plt.imshow(array,
+                    cmap=mcolors.ListedColormap(color_list),
+                    vmin = 0-.5, 
+                    vmax = len(color_list)-1+.5, 
+                    alpha=1)
+    if colorbar:
+        cax = plt.colorbar(mat, ticks=[i for i in range(cl_num+1)])
+    plt.show()

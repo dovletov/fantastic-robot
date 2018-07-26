@@ -69,6 +69,7 @@ Path(configuration_path).mkdir(parents=True, exist_ok=True)
 image, label = loadDatasetFromMat(ORIG_DATA_DIR, args.dataset_name)
 height, width, depth, class_number = getDatasetProperty(image, label)
 image = meanNormalization(image)
+plotArray(label, class_number, COLORS_D17, colorbar=True)
 
 coords = generateCoordsList(image, label, args.patch_size)
 printCoordsListInfo(coords)
@@ -89,11 +90,3 @@ printSplitInfo(tr_coords, vl_coords, ev_coords)
 tr_patches, vl_patches, ev_patches = loadPatches(image, args.patch_size, tr_coords, vl_coords, ev_coords)
 printSplitInfo(tr_patches, vl_patches, ev_patches)
 
-# plt.figure(figsize=(7, 12))
-mat = plt.imshow(label,
-                cmap=mcolors.ListedColormap(COLORS_D17),
-                vmin = 0-.5, 
-                vmax = len(COLORS_D17)-1+.5, 
-                alpha=1)
-# cax = plt.colorbar(mat, ticks=np.unique(label))
-plt.show()
