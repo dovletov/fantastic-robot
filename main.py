@@ -83,9 +83,11 @@ coords_file = os.path.join(configuration_path, coords_filename)
 if Path(coords_file).is_file():
     tr_coords, vl_coords, ev_coords = loadCoords(coords_file)
 else:
-    tr_coords, vl_coords, ev_coords = splitCoordsListByFrac(coords, 0.2, 0.2)
+    # tr_coords, vl_coords, ev_coords = splitCoordsListByFrac(coords, 0.2, 0.2)
+    tr_coords, vl_coords, ev_coords = splitCoordsByEvCount(image, label, coords, 0.7, args.ev_points_per_class, args.patch_size)
     saveCoords(coords_file, tr_coords, vl_coords, ev_coords)
 printSplitInfo(tr_coords, vl_coords, ev_coords)
+splitChecker(height, width, tr_coords, vl_coords, ev_coords)
 
 tr_patches, vl_patches, ev_patches = loadPatches(image, args.patch_size, tr_coords, vl_coords, ev_coords)
 printSplitInfo(tr_patches, vl_patches, ev_patches)

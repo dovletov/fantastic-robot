@@ -5,10 +5,11 @@ from config import *
 import numpy as np
 import tensorflow as tf
 import scipy.io
-from random import shuffle
+from random import shuffle, randrange
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
+from skimage import util
 
 
 # DATASETs
@@ -172,7 +173,6 @@ def generateCoordsList(image, label, patch_size):
             curr_tar = label[x,y]
             if curr_tar > 0:
                 coords[curr_tar-1].append([x,y])
-
     return coords
 def printCoordsListInfo(coords):
     '''
@@ -206,6 +206,73 @@ def splitCoordsListByFrac(coords, vl_frac, ev_frac):
         ev_coords.append(cur_coords[tr_split_size+vl_split_size:])
 
     return tr_coords, vl_coords, ev_coords
+def splitCoordsByEvCount(image, label, coords, tr_frac, ev_count, patch_size):
+    h, w, d, cl_num = getDatasetProperty(image, label)
+    m = getMargin(patch_size)
+
+    # gt image
+    # mat = plt.imshow(label, 
+    #                  cmap=mcolors.ListedColormap(COLORS_D17),
+    #                  vmin = 0-.5, 
+    #                  vmax = len(COLORS_D17)-1+.5, 
+    #                  alpha=1)
+    # cax = plt.colorbar(mat, ticks=np.unique(label))
+    # plt.show()
+
+    ev_map = np.zeros((h, w), dtype=np.uint8)
+    ev_map_with_margin = np.zeros((h, w), dtype=np.uint8)
+    temp_map = np.zeros((h, w), dtype=np.uint8)
+    
+    # extract count evaluation points
+    ev_coords = []
+    for cl in range(cl_num):
+        ev_coords.append([])
+        counter = 0
+        cur_cl_coors = coords[cl]
+        range_index = (0, len(cur_cl_coors))
+        while counter < ev_count:
+            temp_map = temp_map*0
+            index = randrange(*range_index)
+            x, y = cur_cl_coors[index]
+            temp_map[x-m:x+m+1, y-m:y+m+1] = 1
+            if np.sum(ev_map*temp_map) == 0:
+                ev_coords[cl].append([x, y])
+                ev_map[x-m:x+m+1, y-m:y+m+1] = 1
+                ev_map_with_margin[x-2*m:x+2*m+1, y-2*m:y+2*m+1] = 1
+                counter += 1
+    #             print(cl)
+    # plt.imshow(ev_map, 
+    #            cmap=mcolors.ListedColormap(["white", "black"]), 
+    #            alpha=0.5)
+    # plt.show()
+
+    ev_map_with_margin_inv = util.invert(ev_map_with_margin.astype(float))
+    tr_vl_label = label*ev_map_with_margin_inv.astype(int)
+
+    tr_vl_coords = []
+    for i in range(cl_num):
+        tr_vl_coords.append([])
+
+    for x in range(m, h - m):
+        for y in range(m, w - m):
+            curr_tar = tr_vl_label[x,y]
+            if curr_tar > 0:
+                tr_vl_coords[curr_tar-1].append([x,y])
+
+
+    tr_coords, vl_coords = [], []
+    for cl in range(cl_num):
+        cur_coords = tr_vl_coords[cl]
+        cur_population = len(tr_vl_coords[cl])
+
+        tr_split_size = int(cur_population*tr_frac)
+
+        shuffle(cur_coords)
+
+        tr_coords.append(cur_coords[:tr_split_size])
+        vl_coords.append(cur_coords[tr_split_size:])
+            
+    return tr_coords, vl_coords, ev_coords
 def printSplitInfo(tr_coords, vl_coords, ev_coords):
     cl_num = len(tr_coords)
     print('-'*70)
@@ -224,7 +291,15 @@ def formArrayFromCoordsList(height, width, coords):
             y = current_coords[i][1]
             array[x,y] = cl + 1
     return array
+def splitChecker(height, width, tr_coords, vl_coords, ev_coords):
+    tr_arr = formArrayFromCoordsList(height, width, tr_coords)
+    vl_arr = formArrayFromCoordsList(height, width, vl_coords)
+    ev_arr = formArrayFromCoordsList(height, width, ev_coords)
 
+    mul = tr_arr*vl_arr*ev_arr
+
+    if np.sum(mul) > 0:
+        raise ValueError('Something wrong with splitting. Intersection detected')
 
 def saveCoords(coords_file, tr_coords, vl_coords, ev_coords):
     dictionary = {}
