@@ -19,48 +19,70 @@ def loadDatasetFromMat(dataset_dir, dataset_name):
     '''
     print('-'*70)
     if (dataset_name == "ss"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas.mat'))['salinas']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_gt.mat'))['salinas_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas.mat'))['salinas']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_gt.mat'))['salinas_gt']
         print("Salinal dataset is loaded")
     elif (dataset_name == "ssc"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_corrected.mat'))['salinas_corrected']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_gt.mat'))['salinas_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_corrected.mat'))['salinas_corrected']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_gt.mat'))['salinas_gt']
         print("Salinal CORRECTED dataset is loaded")
     elif (dataset_name == "ssc815"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_corrected.mat'))['salinas_corrected']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_gt_815.mat'))['salinas_gt_815']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_corrected.mat'))['salinas_corrected']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_gt_815.mat'))['salinas_gt_815']
         print("Salinal CORRECTED 815 dataset is loaded")
     elif (dataset_name == "ssc_pca"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_corrected_pca.mat'))['salinas_corrected_pca']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Salinas_gt.mat'))['salinas_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_corrected_pca.mat'))['salinas_corrected_pca']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Salinas_gt.mat'))['salinas_gt']
         print("Salinal CORRECTED PCA3 dataset is loaded")
     elif (dataset_name == "ip"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Indian_pines.mat'))['indian_pines']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Indian_pines_gt.mat'))['indian_pines_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Indian_pines.mat'))['indian_pines']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Indian_pines_gt.mat'))['indian_pines_gt']
         print("Indian Pines dataset is loaded")
     elif (dataset_name == "ipc"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Indian_pines_corrected.mat'))['indian_pines_corrected']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Indian_pines_gt.mat'))['indian_pines_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Indian_pines_corrected.mat'))['indian_pines_corrected']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Indian_pines_gt.mat'))['indian_pines_gt']
         print("Indian Pines CORRECTED dataset is loaded")
     elif (dataset_name == "ipc_pca"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Indian_pines_corrected_pca.mat'))['indian_pines_corrected_pca']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Indian_pines_gt.mat'))['indian_pines_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Indian_pines_corrected_pca.mat'))['indian_pines_corrected_pca']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Indian_pines_gt.mat'))['indian_pines_gt']
         print("Indian Pines CORRECTED PCA3 dataset is loaded")
     elif (dataset_name == "pu"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'PaviaU.mat'))['paviaU']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'PaviaU_gt.mat'))['paviaU_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'PaviaU.mat'))['paviaU']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'PaviaU_gt.mat'))['paviaU_gt']
         print("Pavia University dataset is loaded")
     elif (dataset_name == "pc"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Pavia.mat'))['pavia']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Pavia_gt.mat'))['pavia_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Pavia.mat'))['pavia']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Pavia_gt.mat'))['pavia_gt']
         print("Pavia Centre dataset is loaded")
     elif (dataset_name == "ksc"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'KSC.mat'))['KSC']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'KSC_gt.mat'))['KSC_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'KSC.mat'))['KSC']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'KSC_gt.mat'))['KSC_gt']
         print("Kennedy Space Center dataset is loaded")
     elif (dataset_name == "b"):
-        image = scipy.io.loadmat(os.path.join(dataset_dir, 'Botswana.mat'))['Botswana']
-        label = scipy.io.loadmat(os.path.join(dataset_dir, 'Botswana_gt.mat'))['Botswana_gt']
+        image = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Botswana.mat'))['Botswana']
+        label = scipy.io.loadmat(os.path.join(dataset_dir, \
+            'Botswana_gt.mat'))['Botswana_gt']
         print("Botswana dataset is loaded")
     
     return image, label
@@ -131,7 +153,7 @@ def meanNormalization(data):
 # DATA PREPARATION
 def getMargin(patch_size):
     '''
-    Return patch margin from center point.
+    Return patch margin size from a center point.
     '''
     if (patch_size%2 == 0):
         raise ValueError("patch_size should be odd!")
@@ -276,9 +298,15 @@ def splitCoordsByEvCount(image, label, coords, tr_frac, ev_count, patch_size):
 def printSplitInfo(tr_coords, vl_coords, ev_coords):
     cl_num = len(tr_coords)
     print('-'*70)
-    print('\t\t\tlen(tr)\t\tlen(vl)\t\tlen(ev)')
+    print('\t\t\tlen(tr)\t\tlen(vl)\t\tlen(ev)\t\tlen(sum)')
     for cl in range(cl_num):
-        print("Class "+str(cl+1).zfill(2)+"\t\t"+str(len(tr_coords[cl])).zfill(5)+"\t\t"+str(len(vl_coords[cl])).zfill(5)+"\t\t"+str(len(ev_coords[cl])).zfill(5))
+        print("Class%s \t\t %s \t\t %s \t\t %s \t\t"% (\
+            str(cl+1).zfill(2),
+            str(len(tr_coords[cl])).zfill(5),
+            str(len(vl_coords[cl])).zfill(5),
+            str(len(ev_coords[cl])).zfill(5)))
+        # print(str(len(tr_coords[cl]+len(vl_coords[cl])))); quit()
+        
 def formArrayFromCoordsList(height, width, coords):
     array = np.zeros((height, width), dtype=np.uint8)
     
