@@ -10,6 +10,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
 from skimage import util
+import h5py
 
 
 # DATASETs
@@ -262,7 +263,7 @@ def splitCoordsByEvCount(image, label, coords, tr_frac, ev_count, patch_size):
                 ev_map[x-m:x+m+1, y-m:y+m+1] = 1
                 ev_map_with_margin[x-2*m:x+2*m+1, y-2*m:y+2*m+1] = 1
                 counter += 1
-    #             print(cl)
+    
     # plt.imshow(ev_map, 
     #            cmap=mcolors.ListedColormap(["white", "black"]), 
     #            alpha=0.5)
@@ -329,12 +330,25 @@ def splitChecker(height, width, tr_coords, vl_coords, ev_coords):
     if np.sum(mul) > 0:
         raise ValueError('Something wrong with splitting. Intersection detected')
 
-def saveCoords(coords_file, tr_coords, vl_coords, ev_coords):
+def saveCoordsByFrac(coords_file, tr_coords, vl_coords, ev_coords):
     dictionary = {}
-    
     dictionary["tr_coords"] = tr_coords
     dictionary["vl_coords"] = vl_coords
     dictionary["ev_coords"] = ev_coords
+    
+    scipy.io.savemat(coords_file, dictionary)
+    print('-'*70)
+    print('Train, Validation and Evaluation coordinates are saved')
+    print(coords_file)
+def saveCoordsByEvCount(coords_file, tr_coords, vl_coords, ev_coords):
+    dictionary = {}
+    dictionary["tr_coords"] = tr_coords
+    dictionary["vl_coords"] = vl_coords
+    
+    ev_obj_array = np.zeros((16,), dtype=np.object)
+    for cl in range(16):
+        ev_obj_array[cl] = ev_coords[cl]
+    dictionary["ev_coords"] = ev_obj_array
     
     scipy.io.savemat(coords_file, dictionary)
     print('-'*70)
@@ -345,7 +359,7 @@ def loadCoords(coords_file):
     
     tr_coords = coords['tr_coords'][0]
     vl_coords = coords['vl_coords'][0]
-    ev_coords = coords['ev_coords'][0]    
+    ev_coords = coords['ev_coords'][0]
     
     print('-'*70)
     print('Train, Validation and Evaluation coordinates are loaded')
@@ -354,6 +368,13 @@ def loadCoords(coords_file):
     print("length vl coords\t",len(vl_coords))
     print("length ev coords\t",len(ev_coords))
     return tr_coords, vl_coords, ev_coords
+def saveCoordsHdf5(coords_file, tr_coords, vl_coords, ev_coords):
+    hf = h5py.File(coords_file, "w")
+    hf.create_dataset("tr_coords", data=tr_coords, dtype=np.uint8)
+    hf.create_dataset("vl_coords", data=vl_coords, dtype=np.uint8)
+    hf.create_dataset("ev_coords", data=ev_coords, dtype=np.uint8)
+    hf.close()
+
 
 # tr, vl, ev patches
 def loadPatches(image, patch_size, tr_coords, vl_coords, ev_coords):
