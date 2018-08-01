@@ -413,7 +413,26 @@ def loadPatches(image, patch_size, tr_coords, vl_coords, ev_coords):
             cur_cl_patches.append(patchCentered(image, x, y, patch_size))
 
     return tr_patches, vl_patches, ev_patches
+def simpleAugmentation(patch_list):
+    '''
+    Performs simple augmentation (90, 180 and 270 degrees) and shuffles
+    new augmented lists. 
+    Uses np.rot90 since it is faster that skimage.transform.rotate.
+    '''
+    cl_num = len(patch_list)
+    
+    augmented = []
+    for cl in range(cl_num):
+        augmented.append([])
+        cur_cl_patches = patch_list[cl]
+        for patch in cur_cl_patches:
+            augmented[cl].append(patch)
+            augmented[cl].append(np.rot90(patch, k=1, axes=(1,2)))
+            augmented[cl].append(np.rot90(patch, k=2, axes=(1,2)))
+            augmented[cl].append(np.rot90(patch, k=3, axes=(1,2)))
+        shuffle(augmented[cl])
 
+    return augmented
 def plotArray(array, cl_num, color_list, colorbar=True):
     '''
     Plot array as a ground truth image. If needed include colorbar.
