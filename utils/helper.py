@@ -10,6 +10,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
 from skimage import util
+import tensorflow.contrib.slim as slim
+from tensorflow import initializers as tfinit
 
 
 # DATASETs
@@ -446,3 +448,71 @@ def plotArray(array, cl_num, color_list, colorbar=True):
     if colorbar:
         cax = plt.colorbar(mat, ticks=[i for i in range(cl_num+1)])
     plt.show()
+
+
+# placeholders
+def declarePlaceholder2D(patch_size, depth):
+    """
+    Declare image and target placeholders for 2D CNN. Input image placeholder
+    is in BHWCh order. Target image placeholder is of size B, since only one
+    label can be assigned in classification taks.
+    """
+    x_input_shape = (None, patch_size, patch_size, depth)
+    x_input = tf.placeholder(tf.float32, 
+        shape = x_input_shape,
+        name = 'input_image')
+    Y_target = tf.placeholder(tf.int32, 
+        shape = [None],
+        name = 'target_label')
+    return x_input, Y_target
+
+# models
+def cnn2d_example(inputs, pkeep_conv, pkeep_hidden):
+    net = slim.conv2d(inputs = inputs,
+                      num_outputs = 64,
+                      kernel_size = 3,
+                      padding = 'VALID',
+                      activation_fn = tf.nn.relu,
+                      weights_initializer = tfinit.truncated_normal(mean=0,
+                        stddev=0.05),
+                      biases_initializer = tfinit.zeros(),
+                      scope = 'conv1'
+                      )
+    net = slim.dropout(net, pkeep_conv)
+    net = slim.conv2d(inputs = net,
+                      num_outputs = 128,
+                      kernel_size = 3,
+                      padding = 'VALID',
+                      activation_fn = tf.nn.relu,
+                      weights_initializer = tfinit.truncated_normal(mean=0,
+                        stddev=0.05),
+                      biases_initializer = tf.initializers.zeros(),
+                      scope='conv2'
+                      )
+    net = tf.squeeze(net, squeeze_dims=[1,2])
+    net = slim.dropout(net, pkeep_hidden)
+    net = slim.fully_connected(inputs = net,
+                               num_outputs = 200,
+                               scope = 'fc3',
+                               weights_initializer = tfinit.truncated_normal(mean=0,
+                                stddev=0.05),
+                               biases_initializer = tf.initializers.zeros()
+                               )
+    net = slim.dropout(net, pkeep_hidden)
+    net = slim.fully_connected(inputs = net,
+                               num_outputs = 84,
+                               scope = 'fc4',
+                               weights_initializer = tfinit.truncated_normal(mean=0,
+                                stddev=0.05),
+                               biases_initializer = tf.initializers.zeros()
+                               )
+    net = slim.dropout(net, pkeep_hidden)
+    net = slim.fully_connected(inputs = net,
+                               num_outputs = 16,
+                               activation_fn = tf.identity,
+                               scope = 'output',
+                               weights_initializer = tfinit.truncated_normal(mean=0,
+                                stddev=0.05),
+                               biases_initializer = tf.initializers.zeros()
+                               )
+    return net
