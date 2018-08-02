@@ -5,7 +5,7 @@ from config import *
 import numpy as np
 import tensorflow as tf
 import scipy.io
-from random import shuffle, randrange
+import random
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors
@@ -16,9 +16,9 @@ from tensorflow import initializers as tfinit
 
 # DATASETs
 def loadDatasetFromMat(dataset_dir, dataset_name):
-    '''
+    """
     Load image and corresponding label image from original mat files.
-    '''
+    """
     print('-'*70)
     if (dataset_name == "ss"):
         image = scipy.io.loadmat(os.path.join(dataset_dir, \
@@ -89,10 +89,10 @@ def loadDatasetFromMat(dataset_dir, dataset_name):
     
     return image, label
 def getDatasetProperty(image, label):
-    '''
+    """
     Get dataset properties such as height, width, depth of image and
     maximum class number of corresponding label image
-    '''
+    """
     if image.shape[0]==label.shape[0] and image.shape[1]==label.shape[1]:
         height = image.shape[0]
         width = image.shape[1]
@@ -104,9 +104,9 @@ def getDatasetProperty(image, label):
 
 # NORMALIZATIONs
 def reluNormalization(data):
-    '''
+    """
     Normalize data between 0 and 1
-    '''
+    """
     max_minus_min = data.max() - data.min()
     data = data.astype(float)
     data -= data.min()
@@ -119,9 +119,9 @@ def reluNormalization(data):
     
     return data
 def tanhNormalization(data):
-    '''
+    """
     Normalize data in range between -1 and 1
-    '''
+    """
     max_minus_min = data.max() - data.min()
     data = data.astype(float)
     data -= data.min()
@@ -136,9 +136,9 @@ def tanhNormalization(data):
     
     return data
 def meanNormalization(data):
-    '''
+    """
     Mean Normalize (Standardize data)
-    '''
+    """
     std = data.std()
     data = data.astype(float)
     data -= data.mean()
@@ -154,9 +154,9 @@ def meanNormalization(data):
 
 # DATA PREPARATION
 def getMargin(patch_size):
-    '''
+    """
     Return patch margin size from a center point.
-    '''
+    """
     if (patch_size%2 == 0):
         raise ValueError("patch_size should be odd!")
     else:
@@ -164,10 +164,10 @@ def getMargin(patch_size):
         
     return margin
 def patchCentered(data, pos_x, pos_y, patch_size):
-    '''
+    """
     Patch input data of defined size centered at (pos_x, pos_y) 
-    coordinates and return it in ChHW (performance optimization)
-    '''
+    coordinates and return it in HWC.
+    """
     margin = (patch_size-1) // 2
     
     x_top = pos_x - margin
@@ -176,16 +176,15 @@ def patchCentered(data, pos_x, pos_y, patch_size):
     y_right = pos_y + margin+1
 
     patch = data[x_top:x_bottom, y_left:y_right, :]
-    patch = np.transpose(patch,(2,0,1))
     
     return patch
 
 # tr, vl, ev coords
 def generateCoordsList(image, label, patch_size):
-    '''
+    """
     Form lists of coordinates for each of the classes and stores
     them in another one list.
-    '''
+    """
     h, w, d, cl_num = getDatasetProperty(image, label)
     m = getMargin(patch_size)
 
@@ -199,9 +198,9 @@ def generateCoordsList(image, label, patch_size):
                 coords[curr_tar-1].append([x,y])
     return coords
 def printCoordsListInfo(coords):
-    '''
-    Outputs information about the dataset based on coordinates list.
-    '''
+    """
+    Outputs information about dataset based on the list of coordinates.
+    """
     print('-'*70)
     print('\t\t\tlen')
     cl_num = len(coords)
@@ -209,8 +208,10 @@ def printCoordsListInfo(coords):
         cur_coords = coords[cl]
         print("Class "+str(cl+1).zfill(2)+"\t\t"+str(len(cur_coords)))
 def splitCoordsListByFrac(coords, vl_frac, ev_frac):
-    '''
-    '''
+    """
+    Splits labeled part of image into train, validation and evaluation subsets
+    based on 'vl_frac' and 'ev_frac'
+    """
     cl_num = len(coords)
     tr_coords, vl_coords, ev_coords = [], [], []
 
@@ -223,7 +224,7 @@ def splitCoordsListByFrac(coords, vl_frac, ev_frac):
         ev_split_size = int(cur_population*ev_frac)
         tr_split_size = cur_population - vl_split_size - ev_split_size 
 
-        shuffle(cur_coords)
+        random.shuffle(cur_coords)
 
         tr_coords.append(cur_coords[:tr_split_size])
         vl_coords.append(cur_coords[tr_split_size:tr_split_size+vl_split_size])
@@ -231,6 +232,14 @@ def splitCoordsListByFrac(coords, vl_frac, ev_frac):
 
     return tr_coords, vl_coords, ev_coords
 def splitCoordsByEvCount(image, label, coords, tr_frac, ev_count, patch_size):
+    """
+    Splits labeled part of image into train, validation and evaluation subsets.
+    First forms evaluation subset with 'ev_count' coordinates for each class 
+    and guarantees that there would be no overlapping within evaluation patches.
+    After that forms training and validation subsets of coordinates based on
+    'tr_frac'. Based on them training and validation patches can intersect with 
+    each other.
+    """
     h, w, d, cl_num = getDatasetProperty(image, label)
     m = getMargin(patch_size)
 
@@ -256,7 +265,7 @@ def splitCoordsByEvCount(image, label, coords, tr_frac, ev_count, patch_size):
         range_index = (0, len(cur_cl_coors))
         while counter < ev_count:
             temp_map = temp_map*0
-            index = randrange(*range_index)
+            index = random.randrange(*range_index)
             x, y = cur_cl_coors[index]
             temp_map[x-m:x+m+1, y-m:y+m+1] = 1
             if np.sum(ev_map*temp_map) == 0:
@@ -291,13 +300,16 @@ def splitCoordsByEvCount(image, label, coords, tr_frac, ev_count, patch_size):
 
         tr_split_size = int(cur_population*tr_frac)
 
-        shuffle(cur_coords)
+        random.shuffle(cur_coords)
 
         tr_coords.append(cur_coords[:tr_split_size])
         vl_coords.append(cur_coords[tr_split_size:])
             
     return tr_coords, vl_coords, ev_coords
 def printSplitInfo(tr_coords, vl_coords, ev_coords):
+    """
+    Prints split information for each class.
+    """
     cl_num = len(tr_coords)
     print('-'*70)
     print('\t\t\tlen(tr)\t\tlen(vl)\t\tlen(ev)\t\tlen(sum)')
@@ -310,6 +322,9 @@ def printSplitInfo(tr_coords, vl_coords, ev_coords):
         # print(str(len(tr_coords[cl]+len(vl_coords[cl])))); quit()
         
 def formArrayFromCoordsList(height, width, coords):
+    """
+    Generates ground truth array based on coordinate list.
+    """
     array = np.zeros((height, width), dtype=np.uint8)
     
     cl_num = len(coords)
@@ -322,10 +337,10 @@ def formArrayFromCoordsList(height, width, coords):
             array[x,y] = cl + 1
     return array
 def splitChecker(height, width, tr_coords, vl_coords, ev_coords):
-    '''
+    """
     Checks whether there is some intersection between train, validation and
     evaluation coordinate lists. In case if there is one raises ValueError.
-    '''
+    """
     tr_arr = formArrayFromCoordsList(height, width, tr_coords)
     vl_arr = formArrayFromCoordsList(height, width, vl_coords)
     ev_arr = formArrayFromCoordsList(height, width, ev_coords)
@@ -336,10 +351,10 @@ def splitChecker(height, width, tr_coords, vl_coords, ev_coords):
         raise ValueError('Something wrong with splitting. Intersection detected')
 
 def saveCoords(coords_file, tr_coords, vl_coords, ev_coords):
-    '''
+    """
     Saves training, validation and evaluation coordinate lists into
     mat file. Dataset are saved as class 'cell'.  
-    '''
+    """
     dictionary = {}
     
     len_tr_coords = len(tr_coords)
@@ -365,10 +380,10 @@ def saveCoords(coords_file, tr_coords, vl_coords, ev_coords):
     print('Train, Validation and Evaluation coordinates are saved')
     print(coords_file)
 def loadCoords(coords_file):
-    '''
+    """
     Loads train, validation and evaluation coordinate lists from mat
     file. Index '0' is added in order to load the content of the cells.
-    '''
+    """
     coords = scipy.io.loadmat(coords_file)
     
     tr_coords = coords['tr_coords'][0]
@@ -416,11 +431,11 @@ def loadPatches(image, patch_size, tr_coords, vl_coords, ev_coords):
 
     return tr_patches, vl_patches, ev_patches
 def simpleAugmentation(patch_list):
-    '''
+    """
     Performs simple augmentation (90, 180 and 270 degrees) and shuffles
     new augmented lists. 
     Uses np.rot90 since it is faster that skimage.transform.rotate.
-    '''
+    """
     cl_num = len(patch_list)
     
     augmented = []
@@ -432,13 +447,13 @@ def simpleAugmentation(patch_list):
             augmented[cl].append(np.rot90(patch, k=1, axes=(1,2)))
             augmented[cl].append(np.rot90(patch, k=2, axes=(1,2)))
             augmented[cl].append(np.rot90(patch, k=3, axes=(1,2)))
-        shuffle(augmented[cl])
+        random.shuffle(augmented[cl])
 
     return augmented
 def plotArray(array, cl_num, color_list, colorbar=True):
-    '''
+    """
     Plot array as a ground truth image. If needed include colorbar.
-    '''
+    """
     plt.figure(figsize=(7, 12))
     mat = plt.imshow(array,
                     cmap=mcolors.ListedColormap(color_list),
@@ -449,15 +464,61 @@ def plotArray(array, cl_num, color_list, colorbar=True):
         cax = plt.colorbar(mat, ticks=[i for i in range(cl_num+1)])
     plt.show()
 
+# patch, batch generation
+def getRandPatch(patch_list, order = 'NHWC'):
+    """
+    Returns randomly choosen patch and corresponding ground truth value.
+    """
+    cl_num = len(patch_list)
+
+    cl = random.randint(0, cl_num-1)
+    idx = random.randint(0, len(patch_list[cl])-1)
+    
+    if order == 'NHWC':
+        patch = patch_list[cl][idx]
+
+    patch = np.expand_dims(patch, 0)
+    
+    target = cl
+    target = np.expand_dims(target, 0)
+
+    return patch, target
+def getRandBatch(patch_list, batch_size, order='NHWC'):
+    """
+    Randomly forms batch and corresponding ground truth list.
+    """
+    image_batch, target_batch = getRandPatch(patch_list, order=order)
+    for i in range(batch_size-1):
+        image, target = getRandPatch(patch_list, order = order)
+        image_batch = np.concatenate((image_batch, image), axis=0)
+        target_batch = np.concatenate((target_batch, target), axis=0)
+
+    return image_batch, target_batch
+
+# evaluation
+def getPredictionAcc(batch_predictions, targets):
+    """
+    Calculate accuracy value for the batch of predictions.
+    """
+    batch_size = batch_predictions.shape[0]
+
+    logits = np.argmax(batch_predictions, axis=1)
+    num_correct = np.sum(np.equal(logits, targets))
+    
+    acc = 100. * (num_correct/batch_size)
+
+    return acc
+
 
 # placeholders
-def declarePlaceholder2D(patch_size, depth):
+def declarePlaceholder2D(patch_size, depth, order='NHWC'):
     """
     Declare image and target placeholders for 2D CNN. Input image placeholder
-    is in BHWCh order. Target image placeholder is of size B, since only one
+    is in NHWC order. Target image placeholder is of size B, since only one
     label can be assigned in classification taks.
     """
-    x_input_shape = (None, patch_size, patch_size, depth)
+    if order == 'NHWC':
+        x_input_shape = (None, patch_size, patch_size, depth)
     x_input = tf.placeholder(tf.float32, 
         shape = x_input_shape,
         name = 'input_image')
@@ -468,6 +529,8 @@ def declarePlaceholder2D(patch_size, depth):
 
 # models
 def cnn2d_example(inputs, pkeep_conv, pkeep_hidden):
+    """
+    """
     net = slim.conv2d(inputs = inputs,
                       num_outputs = 64,
                       kernel_size = 3,
