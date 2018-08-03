@@ -465,9 +465,11 @@ def plotArray(array, cl_num, color_list, colorbar=True):
     plt.show()
 
 # patch, batch generation
-def getRandPatch(patch_list, order = 'NHWC'):
+def getRandPatch(patch_list, order):
     """
     Returns randomly choosen patch and corresponding ground truth value.
+    'NHWC' order for 2DCNN, where C is the depth of input patch.
+    'NDHWC' order for 3DCNN, where D is the depth of input patch.
     """
     cl_num = len(patch_list)
 
@@ -476,14 +478,19 @@ def getRandPatch(patch_list, order = 'NHWC'):
     
     if order == 'NHWC':
         patch = patch_list[cl][idx]
+    elif order == 'NDHWC':
+        # HWC -> DHW -> DHW1
+        patch = patch_list[cl][idx]
+        patch = np.transpose(patch,(2,0,1))
+        patch = np.expand_dims(patch, axis=3)
+
+    target = cl
 
     patch = np.expand_dims(patch, 0)
-    
-    target = cl
     target = np.expand_dims(target, 0)
 
     return patch, target
-def getRandBatch(patch_list, batch_size, order='NHWC'):
+def getRandBatch(patch_list, batch_size, order):
     """
     Randomly forms batch and corresponding ground truth list.
     """
@@ -496,13 +503,13 @@ def getRandBatch(patch_list, batch_size, order='NHWC'):
     return image_batch, target_batch
 
 # evaluation
-def getPredictionAcc(batch_predictions, targets):
+def getPredictionAcc(batch_prediction, targets):
     """
     Calculate accuracy value for the batch of predictions.
     """
-    batch_size = batch_predictions.shape[0]
+    batch_size = batch_prediction.shape[0]
 
-    logits = np.argmax(batch_predictions, axis=1)
+    logits = np.argmax(batch_prediction, axis=1)
     num_correct = np.sum(np.equal(logits, targets))
     
     acc = 100. * (num_correct/batch_size)
@@ -526,56 +533,19 @@ def declarePlaceholder2D(patch_size, depth, order='NHWC'):
         shape = [None],
         name = 'target_label')
     return x_input, Y_target
+def declarePlaceholder3D(patch_size, depth, order='NDHWC'):
+    """
+    Declare image and target placeholders for 3D CNN. Input image placeholder
+    is in NDHWC order. Target image placeholder is of size N, since only one
+    label can be assigned in classification taks.
+    """
+    if order == 'NDHWC':
+        x_input_shape = (None, depth, patch_size, patch_size, 1)
+    x_input = tf.placeholder(tf.float32, 
+        shape=x_input_shape,
+        name = 'input_image')
+    Y_target = tf.placeholder(tf.int32, 
+        shape = [None],
+        name = 'target_label')
+    return x_input, Y_target
 
-# models
-def cnn2d_example(inputs, pkeep_conv, pkeep_hidden):
-    """
-    """
-    net = slim.conv2d(inputs = inputs,
-                      num_outputs = 64,
-                      kernel_size = 3,
-                      padding = 'VALID',
-                      activation_fn = tf.nn.relu,
-                      weights_initializer = tfinit.truncated_normal(mean=0,
-                        stddev=0.05),
-                      biases_initializer = tfinit.zeros(),
-                      scope = 'conv1'
-                      )
-    net = slim.dropout(net, pkeep_conv)
-    net = slim.conv2d(inputs = net,
-                      num_outputs = 128,
-                      kernel_size = 3,
-                      padding = 'VALID',
-                      activation_fn = tf.nn.relu,
-                      weights_initializer = tfinit.truncated_normal(mean=0,
-                        stddev=0.05),
-                      biases_initializer = tf.initializers.zeros(),
-                      scope='conv2'
-                      )
-    net = tf.squeeze(net, squeeze_dims=[1,2])
-    net = slim.dropout(net, pkeep_hidden)
-    net = slim.fully_connected(inputs = net,
-                               num_outputs = 200,
-                               scope = 'fc3',
-                               weights_initializer = tfinit.truncated_normal(mean=0,
-                                stddev=0.05),
-                               biases_initializer = tf.initializers.zeros()
-                               )
-    net = slim.dropout(net, pkeep_hidden)
-    net = slim.fully_connected(inputs = net,
-                               num_outputs = 84,
-                               scope = 'fc4',
-                               weights_initializer = tfinit.truncated_normal(mean=0,
-                                stddev=0.05),
-                               biases_initializer = tf.initializers.zeros()
-                               )
-    net = slim.dropout(net, pkeep_hidden)
-    net = slim.fully_connected(inputs = net,
-                               num_outputs = 16,
-                               activation_fn = tf.identity,
-                               scope = 'output',
-                               weights_initializer = tfinit.truncated_normal(mean=0,
-                                stddev=0.05),
-                               biases_initializer = tf.initializers.zeros()
-                               )
-    return net
