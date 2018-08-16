@@ -1,1 +1,2 @@
-cheeseburger recepi is here (:
+This is fantastic-robot project.
+Do not open it!
